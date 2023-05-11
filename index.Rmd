@@ -1,0 +1,262 @@
+---
+title: "Mapping UK Birth Rates"
+author: Eva-Sofia Fernandez-Arias
+output: html_document
+date: "2023-05-04"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+### **Project Background**
+
+This project was created for the [PSY6422 Data Analysis and Visualisation module](https://tomstafford.github.io/psy6422/) as part of the MSc in [Cognitive Neuroscience and Human Neuroimaging](https://www.sheffield.ac.uk/postgraduate/taught/courses/2023/cognitive-neuroscience-and-human-neuroimaging-msc) at the [University of Sheffield](https://www.sheffield.ac.uk/). See my [github repository](https://github.com/evasfa8/Mapping_UK_Birth_Rates.git) for further documentation. 
+
+
+
+
+
+
+### **Research Question**
+
+What are the trends in UK birth rates over the past 73 years?
+
+
+
+
+
+
+### **Data Origins**
+
+I obtained a data set that contains yearly birth rates and growth rates in the UK from 1950-2023. This data was accessed through [Macrotrends](https://www.macrotrends.net/countries/GBR/united-kingdom/birth-rate#:~:text=The%20birth%20rate%20for%20U.K.,a%200.48%25%20decline%20from%202019) - a research platform that provides open source, historical and economic data.
+
+
+The data was originally sourced from the [United Nations World Population Prospects](https://population.un.org/wpp/), and offers population estimates from 1950 to present day for 237 countries, based on information from national population censuses, registration systems and surveys.
+
+
+
+
+### **Data Preparation**
+
+This project was developed using RMarkdown. I used packages from these libraries:
+
+```{r message = FALSE, warning =FALSE}
+library(tidyverse)
+library(rmarkdown)
+library(readxl)
+library(plotly)
+library(gganimate)
+library(gifski)
+```
+
+
+
+
+First, we load the data.
+
+```{r}
+df <- read_excel("birth_rate_data.xlsx") #load data
+```
+
+
+```{r}
+head(df) #shows the first few lines of raw data
+```
+
+
+
+
+### Tidying Data
+
+
+```{r}
+names(df) #returns the names of the variables in a data frame
+```
+
+As I am focusing specifically on birth rates, the "Growth Rate" column can be removed. I did this by dropping a column using the subset() function.
+
+```{r}
+drop <- c("Growth Rate")
+df = df[,!(names(df) %in% drop)]
+```
+
+
+This leaves us with 2 variables ("Year" and "Birth Rate").
+
+```{r}
+names(df)
+```
+
+As variables cannot have spaces in them, I renamed "Birth Rate" as "Rate".
+
+```{r}
+names(df)[names(df) == "Birth Rate"] <- "Rate"
+```
+
+
+```{r}
+head(df) #shows the first few lines of processed data
+```
+
+
+Let's take a look at the summary statistics to get an insight into our data. 
+
+```{r}
+summary(df) #shows summary statistics for processed data
+```
+
+
+```{r}
+#save processed data
+write.csv(df,"C:/Users/eva-s/OneDrive/Main/Masters/SPR/Data_Analysis_Visualisation/Another_One/df.csv", row.names=FALSE)
+```
+
+
+As we can see, the birth rates range quite a bit, from 11.27 to 18.30. We can now create a graph to visualise these changing birth rates.
+
+
+### **Visualisation**
+
+I wanted to create a line graph to show how birth rates change over time. A line graph was the best choice for this visualisation, as it is the standard way of showing change over time - [A Visual Vocabulary, Financial Times](https://ft-interactive.github.io/visual-vocabulary/). As the data are continuous, the data points can be plotted across the graph and connected with a continuous line. This provides a clear visualisation of any peaks and troughs in the data, making it quick and easy to identify trends. 
+
+### Coding the visualisation
+Below shows the script for the graph. I have added comments using "#" to provide more information on specific steps along the way. 
+
+```{r}
+#plot year against birth rate
+ggplot(
+    data = df,
+    mapping = aes(x = Year,
+                  y = Rate)) + 
+  #set y-axis limits
+    ylim(
+        c(10, 20))+ 
+  #set birth rate as solid blue line
+    geom_line(
+        linewidth = 1, color = "darkblue") +
+  #set x-axis breaks to 10
+  scale_x_continuous(limits = c(1950, 2023), breaks = scales::breaks_width(10))+ 
+    #classic theme and serif font makes the plot clearer
+    theme_classic(base_family = "serif") +
+  #centre allign title 
+  theme(plot.title = element_text(hjust = 0.5))+
+  #Assign labels, title and caption
+    labs(
+        x = "Year", 
+        y = "Births Per 1000 People", 
+        title = "UK Birth Rates", 
+        caption = "Data Source: MacroTrends")
+```
+
+
+#### Notes
+The visualisation above is clear and concise, but a little boring. So, I decided to change my graph from static to *interactive*. I used the [plotly](https://plotly.com/r/getting-started/) package, which allows users to hover over the data points for more information. In this instance, it reveals the exact year and corresponding birth rate. Instead of relying on eyeballing the data, users can now explore specific data points, allowing for a more detailed analysis. 
+
+
+```{r}
+#make graph a static object
+static <- df %>% ggplot(
+     data = df,
+     mapping = aes(x = Year,
+                   y = Rate)) + 
+     ylim(
+         c(10, 20))+ 
+     geom_line(
+         linewidth = 1, color = "darkblue") +
+     scale_x_continuous(limits = c(1950, 2023), breaks = scales::breaks_width(10))+
+     theme_classic(base_family = "serif") +
+    theme(plot.title = element_text(hjust = 0.5))+
+     labs(
+         x = "Year", 
+         y = "Births Per 1000 People", 
+         title = "UK Birth Rates", 
+         caption = "Data Source: MacroTrends")
+
+#use ggplotly to make static object interactive
+ ggplotly(static)
+``` 
+ 
+ 
+ 
+```{r message = FALSE}
+#save output
+ ggsave('births.png')
+
+```
+
+We now have an interactive graph that shows the yearly birth rate from 1950 to 2023!
+
+The plot saved as a static image, so I also exported it as a webpage so I could have the interactive html version. Both are available in my [github repository](https://github.com/evasfa8/Mapping_UK_Birth_Rates.git).
+
+
+
+### Animated Plots
+
+I wanted to challenge myself to animate the plot, as this is an advanced coding skill that could improve my visualisation. Animation in this instance is a way of emphasising change over time. Although an animated plot may not be the most scientifically efficient way of showing data, I believe that it is more engaging, as you can follow the steep peaks and troughs of the data as they occur. Additionally, it demands attention, as people are naturally drawn to moving objects. Thus, the graph fulfills its primary aim - to capture the audience's attention. This is a vital step, as without it, the data and any trends that could be identified would go unnoticed. 
+
+
+```{r message = FALSE}
+ggplot(
+    data = df,
+    mapping = aes(x = Year,
+                  y = Rate)) + 
+    ylim(
+        c(10, 20))+ 
+    geom_line(
+        linewidth = 1, color = "darkblue") +
+  scale_x_continuous(limits = c(1950, 2023), breaks = scales::breaks_width(10))+ 
+    theme_classic(base_family = "serif") +
+theme(plot.title = element_text(hjust = 0.5))+
+    labs(
+        x = "Year", 
+        y = "Births Per 1000 People", 
+        title = "UK Birth Rates", 
+        caption = "Data Source: MacroTrends")+
+transition_reveal(Year)+  #reveals graph over time
+  shadow_mark() #keeps rendered graph visible 
+```
+
+
+#### Notes
+
+After a lot of searching, I finally found a method to animate this plot. Most tutorials required the time data to be in the form of dates (e.g. DD/MM/YYYY), so it was a challenge to find one that animated an existing time-series with yearly time data. In the end, it only required a short, simple bit of code, which was quite satisfying.
+
+
+Overall, I am very pleased with the final animated visualisation. Although, the animation removed the interactive hover text feature, I think it is a necessary trade-off. Users can still eyeball the data to determine the yearly rate, and there are many data sources available if they wish to know the exact details. The main point of this graph is to demonstrate *trends* in birth rates, so showing dynamic changes via animation seems to be the best approach.
+
+I think the classic theme, font, and dark blue line colour make the plot appear professional. Also, the x and y axis scales are appropriate as they closely reflect the boundaries of the data, with well-spaced breaks for easy readability. Additionally, the axis labels clearly show the variables being measured, with a clear title. Finally, the eye-catching animation helps to fulfill the aims of the visualisation.
+
+
+
+
+## **Summary**
+In summary, I used open source data from Macrotrends and the United Nations World Population Prospects to graph a time series of birth rates in the UK from 1950 to 2023. 
+
+My graph shows:
+
+
+* A peak in birth rates in the 60s, followed by an overall decline to present day. 
+
+* The first trough in the graph (steep decline in birth rates) may have been due to the The Abortion Act 1967, so more women were able to terminate pregnancies. 
+
+* The general decline in birth rates could be due to the increasing costs of living, which makes raising a child more expensive. 
+
+* Additionally, global events such as COVID19 may be responsible for the further decline in birth rates towards the end of the graph (2019-2023), as people were required to maintain social distancing and many people lost sources of income. 
+
+
+*Disclaimer* - This project was simply an exercise in data visualisation, so no statistical analyses were performed. Any trends in birth rates should be interpreted with caution and further information should be sought.
+
+
+### Reflection
+
+I have learnt a lot throughout this project. As someone who had never coded before, there was a steep learning curve, but with perseverance it became more manageable and even enjoyable!
+
+If I had more time to spend on this project, I would:
+
+* Attempt more unique visualisations. Due to the time constraints and strikes which limited teaching time, I felt like it was appropriate to do a simpler graph to make sure I understood everything, rather than attempting something too complex. With more time, I could branch out and explore more ways of visualising data. 
+
+* Experiment with larger data sets, plotting multiple variables at once.
+
+* Learn how to incorporate hover text so I can label graphs with more information. E.g. labeling critical events that could have impacted upon birth rates, so they are always visible on the graph. 
