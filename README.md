@@ -13,3 +13,7 @@ Index.rmd and Index.html <- code for the data processing and final visualisation
 birth_rates.gif, birth_rates.html and births.png <- key visualisations
 
 df.csv <- processed data after cleaning.
+
+processed_codebook <- details for processed data
+
+raw_codebook <- details for raw data
