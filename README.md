@@ -8,6 +8,8 @@ The files above include:
 
 Birth_Rate_Data.xlsx <- raw data before cleaning.
 
-df.csv <- processed data after cleaning.
+Index.rmd and Index.html <- code for the data processing and final visualisation.  
 
-Index.html and Index.rmd <- code for the data processing and final visualisation.  
+birth_rates.gif, birth_rates.html and births.png <- key visualisations
+
+df.csv <- processed data after cleaning.
